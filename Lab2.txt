@@ -1,0 +1,39 @@
+ sensorValue;
+float temperature = 0;  // Almacena la temperatura en grados Celsius
+const int ledPin = 13;  // Pin del LED
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+  Serial.begin(9600); // Configurar la velocidad de transmisión serie a 9600 baudios
+}
+
+void loop() {
+  sensorValue = analogRead(A0);
+  
+  // Convertir el valor de entrada a grados Celsius
+  temperature = (sensorValue * 0.48828125) - 50.0;
+  
+  Serial.print("Temperatura (°C): ");
+  Serial.println(temperature);
+
+  // Validaciones de temperatura
+  if (temperature < 5) {
+    // Accionar el LED en intermitencia con un retardo de 0.5 segundos
+    intermitenciaLED();
+  } else if (temperature >= 6 && temperature <= 25) {
+    // Apagar el LED
+    digitalWrite(ledPin, LOW);
+  } else {
+    // Encender el LED
+    digitalWrite(ledPin, HIGH);
+  }
+
+  delay(1000); // Esperar 1 segundo antes de la próxima lectura
+}
+
+void intermitenciaLED() {
+  digitalWrite(ledPin, HIGH);
+  delay(500);
+  digitalWrite(ledPin, LOW);
+  delay(500);
+}

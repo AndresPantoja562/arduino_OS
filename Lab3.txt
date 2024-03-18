@@ -1,63 +1,57 @@
 #include <LiquidCrystal.h>
 
-// Pines de la pantalla LCD
-const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
-LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+#define REGISTER_SELECT 12
+#define ENABLE 11
+#define DB4 5
+#define DB5 4
+#define DB6 3
+#define DB7 2
 
-// Pines del sensor TMP36, LED y motor
-const int tmpSensorPin = A0;
-const int ledPin = 6;
-const int motorPin = 7;
+#define LED_RED 13
+#define DC_MOTOR 10
+#define TMP_SENSOR A0
 
-void setup() {
- // Inicializar la pantalla LCD
- lcd.begin(16, 2);
- lcd.print("Temperatura:");
+int seconds = 0;
 
- // Configurar los pines como salidas/entradas
- pinMode(ledPin, OUTPUT);
- pinMode(motorPin, OUTPUT);
- Serial.begin(9600);
+LiquidCrystal lcd_1(REGISTER_SELECT, ENABLE, DB4, DB5, DB6, DB7);
+
+void setup()
+{
+    pinMode(LED_RED, OUTPUT);
+    pinMode(DC_MOTOR, OUTPUT);
+
+    lcd_1.begin(16, 3);
+    lcd_1.print("hello world!");
+
+    Serial.begin(9600);
 }
 
-void loop() {
- // Leer el valor del sensor TMP36
- int sensorValue = analogRead(tmpSensorPin);
+void loop()
+{
+    float tmp = analogRead(TMP_SENSOR) * 0.48828125 - 50;
 
- // Convertir el valor analógico a temperatura (suponiendo una resolución de 10 mV/°C)
- float temperature = (sensorValue * (5.0 / 1023.0) - 0.5) * 100; // Temperatura en °C
+    digitalWrite(DC_MOTOR, LOW);
+    digitalWrite(LED_RED, LOW);
 
- // Mostrar la temperatura en el monitor serial
- Serial.print("Temperatura: ");
- Serial.print(temperature);
- Serial.println(" °C");
+    lcd_1.setCursor(0, 1);
+    lcd_1.print(seconds);
+    lcd_1.print(" ");
+    lcd_1.print(tmp);
+    lcd_1.print("C   ");
+    seconds += 1;
 
- // Mostrar la temperatura en la pantalla LCD
- lcd.setCursor(0, 1);
- lcd.print(temperature);
- lcd.print(" C");
-
- // Validaciones según la temperatura
- if (temperature <= 10) {
-   // Temperatura menor o igual a 10 °C
-   intermitenciaLED(0.5);
-   digitalWrite(motorPin, LOW);
- } else if (temperature >= 11 && temperature <= 25) {
-   // Temperatura entre 11 °C y 25 °C
-   digitalWrite(ledPin, LOW);
-   digitalWrite(motorPin, LOW);
- } else {
-   // Temperatura mayor o igual a 26 °C
-   digitalWrite(ledPin, HIGH);
-   digitalWrite(motorPin, HIGH);
- }
-
- delay(1000); // Esperar un segundo antes de la próxima lectura
-}
-
-void intermitenciaLED(float retardo) {
- digitalWrite(ledPin, HIGH);
- delay(retardo * 1000);
- digitalWrite(ledPin, LOW);
- delay(retardo * 1000);
+    if (tmp <= 10)
+    {
+        digitalWrite(LED_RED, HIGH);
+        delay(500);
+        digitalWrite(LED_RED, LOW);
+        delay(500);
+        return;
+    }
+    else if (tmp >= 26)
+    {
+        digitalWrite(LED_RED, HIGH);
+        digitalWrite(DC_MOTOR, HIGH);
+    }
+    delay(1000);
 }
